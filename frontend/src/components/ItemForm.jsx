@@ -1,15 +1,27 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function ItemForm({ initialValues, onSubmit, submitText }) {
-  const [formData, setFormData] = useState(
-    initialValues || {
-      name: "",
-      category: "",
-      price: "",
-      description: "",
-      imageUrl: "",
+  const [formData, setFormData] = useState({
+    name: "",
+    category: "",
+    price: "",
+    description: "",
+    imageUrl: "",
+    expiryDate: "", //NEW
+  });
+
+  //Handle edit mode (important)
+  useEffect(() => {
+    if (initialValues) {
+      setFormData({
+        ...initialValues,
+        price: initialValues.price || "",
+        expiryDate: initialValues.expiryDate
+          ? initialValues.expiryDate.substring(0, 10) //FIX for date input
+          : "",
+      });
     }
-  );
+  }, [initialValues]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -18,9 +30,11 @@ function ItemForm({ initialValues, onSubmit, submitText }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     onSubmit({
       ...formData,
       price: Number(formData.price),
+      expiryDate: formData.expiryDate, //included
     });
   };
 
@@ -55,7 +69,19 @@ function ItemForm({ initialValues, onSubmit, submitText }) {
       <label>Image URL</label>
       <input name="imageUrl" value={formData.imageUrl} onChange={handleChange} />
 
-      <button className="btn primary" type="submit">{submitText}</button>
+      {/*NEW FIELD */}
+      <label>Expiry Date</label>
+      <input
+        type="date"
+        name="expiryDate"
+        value={formData.expiryDate}
+        onChange={handleChange}
+        required
+      />
+
+      <button className="btn primary" type="submit">
+        {submitText}
+      </button>
     </form>
   );
 }

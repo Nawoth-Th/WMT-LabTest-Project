@@ -27,6 +27,18 @@ const itemSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+
+    //NEW FIELD: Expiry Date
+    expiryDate: {
+      type: Date,
+      required: [true, "Expiry date is required"],
+      validate: {
+        validator: function (value) {
+          return value > new Date();
+        },
+        message: "Expiry date must be in the future",
+      },
+    },
   },
   { timestamps: true }
 );

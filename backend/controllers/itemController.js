@@ -1,5 +1,11 @@
 import Item from "../models/Item.js";
 
+//normalize expiryDate
+const normalizeExpiryDate = (date) => {
+  if (!date) return null;
+  return new Date(date);
+};
+
 export const getItems = async (req, res) => {
   try {
     const items = await Item.find().sort({ createdAt: -1 });
@@ -25,7 +31,13 @@ export const getItemById = async (req, res) => {
 
 export const createItem = async (req, res) => {
   try {
-    const newItem = await Item.create(req.body);
+    const data = {
+      ...req.body,
+      expiryDate: normalizeExpiryDate(req.body.expiryDate), //ensure Date object
+    };
+
+    const newItem = await Item.create(data);
+
     res.status(201).json(newItem);
   } catch (error) {
     res.status(400).json({
@@ -37,10 +49,23 @@ export const createItem = async (req, res) => {
 
 export const updateItem = async (req, res) => {
   try {
-    const updatedItem = await Item.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
+    const data = {
+      ...req.body,
+    };
+
+    //Only normalize if provided (important for partial updates)
+    if (req.body.expiryDate) {
+      data.expiryDate = normalizeExpiryDate(req.body.expiryDate);
+    }
+
+    const updatedItem = await Item.findByIdAndUpdate(
+      req.params.id,
+      data,
+      {
+        new: true,
+        runValidators: true, //ensures expiryDate validation runs
+      }
+    );
 
     if (!updatedItem) {
       return res.status(404).json({ message: "Item not found" });
